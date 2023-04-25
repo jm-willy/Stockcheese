@@ -1,7 +1,7 @@
 # Stockcheese
-Chess AI fully based on artificial neural networks. Intended to be trained again itself and Stockfish, the best chess engine and best player ever.
+Chess AI fully based on artificial neural networks. Intended to be trained again itself and Stockfish 15, currently the best chess player and engine of all times.
 
-Stockcheese follows the actor-critic paradigm and doesn't relly on explicit/brute-force monte carlo tree search. The critic not only learns the value function of the current state,but also the value function for a sequence of states: aka the monte carlo tree search function, thanks to lstm layers within the architecture 
+Stockcheese follows the actor-critic paradigm and doesn't relly on explicit/brute-force monte carlo tree search. Since the critic not only learns the value function of the current state, but also the value function for a sequence of states: aka the monte carlo tree search function, thanks to lstm layers within the architecture among other details.
 
 ### Creative implementation details
 - Unlike the standard actor-critic, the critic sents its ouput to the actor as a feedback in both training and inference, as the actor doesn't learn the
