@@ -6,7 +6,7 @@ shared_model_inputs = tf.keras.Input((32, 64))
 x = tf.keras.layers.Dropout(4 / 64)(shared_model_inputs)
 
 lstm_res = x = tf.keras.layers.LSTM(64, activation='tanh', return_sequences=True)(x)
-lstm_res = x = tf.keras.layers.LSTM(64, activation='tanh', return_sequences=True)(x + lstm_res)
+x = tf.keras.layers.LSTM(64, activation='tanh', return_sequences=True)(x)
 x = tf.keras.layers.Flatten()(x)
 x = tf.keras.layers.LayerNormalization()(x)
 dense_res = x = sub_model(x)
