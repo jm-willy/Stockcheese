@@ -2,25 +2,23 @@ import tensorflow as tf
 
 
 @tf.function
-def my_hard_sigmoid(x, f_range=2):
-    x = (6 * x) / f_range
-    x = tf.nn.relu6(x) / 6
+def my_hard_sigmoid(x):
+    x = 6 * x
+    x = tf.keras.ops.relu6(x) / 6
     return x
 
 
 @tf.function
-def my_hard_tanh(x, f_range=4, f_domain=2):
-    x = 6 * ((x / f_range) + 0.5)
-    x = tf.nn.relu6(x) / 6
-    x = f_domain * (x - 0.5)
+def my_hard_tanh(x):
+    x = 3 * (x + 1)
+    x = tf.keras.ops.relu6(x) / 3
+    x = x - 1
     return x
 
 
 @tf.function
-def leaky_hard_tanh(x, f_range=4, f_domain=2, slope=0.05):
-    x = 6 * ((x / f_range) + 0.5)
-    x = tf.nn.relu6(x) / 6
-    x = f_domain * (x - 0.5)
+def leaky_hard_tanh(x, slope=0.05):
+    x = my_hard_tanh(x)
     x = x + (x * slope)
     return x
 
@@ -28,25 +26,57 @@ def leaky_hard_tanh(x, f_range=4, f_domain=2, slope=0.05):
 class PTanh(tf.keras.layers.Layer):
     """Parametric hard tanh"""
 
-    def __init__(
-        self,
-        f_range_init=tf.initializers.constant(4),
-        f_domain_init=tf.initializers.constant(2),
-        # slope_init=tf.initializers.constant(0.24),
-    ):
+    def __init__(self, slope_init=tf.initializers.constant(0.24)):
         super().__init__()
-        self.r_init = f_range_init
-        self.d_init = f_domain_init
-        # self.s_init = slope_init
+        self.slope_init = slope_init
         return
 
     def build(self, input_shape):
-        self.r = self.add_weight(shape=(input_shape[-1]), initializer=self.r_init)
-        self.d = self.add_weight(shape=(input_shape[-1]), initializer=self.d_init)
+        self.slope = self.add_weight(
+            shape=(input_shape[-1]), initializer=self.slope_init
+        )
         return
 
     def call(self, inputs):
-        x = my_hard_tanh(inputs, f_range=self.r, f_domain=self.d)
+        x = my_hard_tanh(inputs, slope=self.slope)
+        return x
+
+
+@tf.function
+def proportional_repr(x):
+    x = x / tf.keras.ops.sum(x, axis=-1)
+    return x
+
+
+@tf.function
+def madmax(x):
+    """
+    Proportional representation activation. Alternative to softmax.
+    Leaky relu is placed before to avoid 0 mean and thus
+    0 division errors.
+
+    Hardmax name is already taken.
+    """
+    x = tf.keras.ops.leaky_relu(x, negative_slope=0.2)
+    x = proportional_repr(x)
+    return x
+
+
+class Proportional(tf.keras.layers.Layer):
+    """
+    Proportional representation layer. Alternative to softmax.
+
+
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.activation1 = tf.keras.layers.LeakyReLU(negative_slope=0.2)
+        return
+
+    def call(self, inputs):
+        x = self.activation1(inputs)
+        x = proportional_repr(x)
         return x
 
 
