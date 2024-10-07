@@ -5,12 +5,19 @@ from critic import critic_model
 from shared_network import shared_model
 from time_utils import date_time_print
 
+from vars import sc_options
 
-inputs = tf.keras.layers.Input(shape=(32, 8, 8, 1))
+input_size = sc_options["remember"]
+
+
+inputs = tf.keras.layers.Input(shape=(input_size, 8, 8, 1))
 x = shared_model(inputs)
 critic_feedback = critic_model(x)
-action = actor_model(x * critic_feedback)
-model = tf.keras.Model(inputs=inputs, outputs=[critic_feedback, action])
+x = tf.keras.layers.Concatenate(axis=-1)([x, critic_feedback])
+action = actor_model(x)
+model = tf.keras.Model(
+    inputs=inputs, outputs=[critic_feedback, action], name="FULL.MODEL"
+)
 
 # print()
 # date_time_print("shared_model summary:")

@@ -1,9 +1,9 @@
 from datetime import datetime
 
 
-def date_time_print(*output, sep=' ', end=''):
-    if any(output):
-        print(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), end=' | ')
+def date_time_print(*output, sep=" ", end=""):
+    if len(output) > 0:
+        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), end=" | ")
         for i in output[:-1]:
             print(i, end=sep)
         if any(end):

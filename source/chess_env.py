@@ -1,18 +1,15 @@
-from random import uniform
-
+from re import S
 import chess
 import chess.engine
 
-from chess_env_utils import is_pawn_promotion, dynamic_draw_punishment
+from chess_env_utils import (
+    is_pawn_promotion,
+    dynamic_draw_punishment,
+    dynamic_illegal_move_punishment,
+)
 from stockcheese import Stockcheese
 from stockcheese import color_move_legality_check
-from time_utils import date_time_print
 from vars import piece_value_dict
-from vars import sf_options
-from vars import vars_dict
-
-sf = chess.engine.SimpleEngine.popen_uci(vars_dict["sf path"])
-sf.configure(sf_options)
 
 
 class ChessEnvironment(Stockcheese):
@@ -24,22 +21,21 @@ class ChessEnvironment(Stockcheese):
 
     def __init__(self):
         super().__init__(train=True)
-        self.white_mobility = 0.0
-        self.black_mobility = 0.0
+        self.white_mobility = 1.0
+        self.black_mobility = 1.0
 
-        self.white_value = 0.0
-        self.black_value = 0.0
+        self.white_value = 1.0
+        self.black_value = 1.0
 
-        self.white_attack = 0.0
-        self.black_attack = 0.0
+        self.white_attack = 1.0
+        self.black_attack = 1.0
 
-        self.white_defense = 0.0
-        self.black_defense = 0.0
+        self.white_defense = 1.0
+        self.black_defense = 1.0
 
         self.reward = None
-        self.sf_skill_level = 0
-        self.sf_min_time = 200  # milliseconds
         self.sc_illegal_move = False
+        self.game_over = False
 
         if self.white is True:
             self.turn = 1
@@ -67,25 +63,25 @@ class ChessEnvironment(Stockcheese):
             except KeyError:
                 pass
 
-        self.white_value.append(white_points / black_points)
-        self.black_value.append(black_points / white_points)
+        self.white_value = white_points / black_points
+        self.black_value = black_points / white_points
         return
 
     def mobility_points(self):
         """Gives points according to current board piece mobility"""
         if self.white is True:
-            white_mobility_count = self.board.legal_moves.count()
+            white_count = self.board.legal_moves.count()
             self.board.push(chess.Move.null())
-            black_mobility_count = self.board.legal_moves.count()
+            black_count = self.board.legal_moves.count()
             self.board.pop()
         elif self.white is False:
-            black_mobility_count = self.board.legal_moves.count()
+            black_count = self.board.legal_moves.count()
             self.board.push(chess.Move.null())
-            white_mobility_count = self.board.legal_moves.count()
+            white_count = self.board.legal_moves.count()
             self.board.pop()
 
-        self.white_mobility.append(white_mobility_count / black_mobility_count)
-        self.black_mobility.append(black_mobility_count / white_mobility_count)
+        self.white_mobility = white_count / black_count
+        self.black_mobility = black_count / white_count
         return
 
     def attack_defense_points(self):
@@ -103,8 +99,8 @@ class ChessEnvironment(Stockcheese):
                 elif x is chess.BLACK:
                     b_squares.append(sq)
 
-        w_attack = 0
-        w_defense = 0
+        w_attack = 1
+        w_defense = 1
         for sq in w_squares:
             moves = self.board.attacks(sq)
             for i in moves:
@@ -113,8 +109,8 @@ class ChessEnvironment(Stockcheese):
                 elif i in b_squares:
                     w_attack += 1
 
-        b_attack = 0
-        b_defense = 0
+        b_attack = 1
+        b_defense = 1
         for sq in b_squares:
             moves = self.board.attacks(sq)
             for i in moves:
@@ -123,131 +119,125 @@ class ChessEnvironment(Stockcheese):
                 elif i in w_squares:
                     b_attack += 1
 
-        self.white_attack.append(w_attack / b_attack)
-        self.black_attack.append(b_attack / w_attack)
+        self.white_attack = w_attack / b_attack
+        self.black_attack = b_attack / w_attack
 
-        self.white_defense.append(w_defense / b_defense)
-        self.black_defense.append(b_defense / w_defense)
+        self.white_defense = w_defense / b_defense
+        self.black_defense = b_defense / w_defense
         return
 
     def game_reward(self, sc_wins, total_games):
         """get final match reward"""
-        if self.board.is_game_over():
-            result = self.board.outcome()
-            if result.winner is chess.WHITE:
-                if self.white:
-                    self.reward = 10
-                elif not self.white:
-                    self.reward = -10
-            elif result.winner is chess.BLACK:
-                if self.white:
-                    self.reward = -10
-                elif not self.white:
-                    self.reward = 10
-            elif result.winner is None:
-                self.reward = dynamic_draw_punishment(sc_wins, total_games)
+        result = self.board.outcome()
+        if result.winner is chess.WHITE:
+            if self.white:
+                self.reward = 10
+            elif not self.white:
+                self.reward = -10
+        elif result.winner is chess.BLACK:
+            if self.white:
+                self.reward = -10
+            elif not self.white:
+                self.reward = 10
+        elif result.winner is None:
+            self.reward = dynamic_draw_punishment(sc_wins, total_games)
         return self.reward
+
+    def game_over_check(self):
+        # if self.board.legal_moves.count() < 10:
+        #     self.game_over = True
+        if self.board.is_game_over():
+            self.game_over = True
+        else:
+            self.game_over = False
+        return self.game_over
 
     def step_reward(self, uci_move, sc_wins, total_games):
         """
-        Return a rewad before moving, this is,
-        based on the board state caused by the
-        previous move.
-        Rewards are not normailized from -1 to 1
+        Return a rewad after moving. Returned
+        rewards are not normailized from -1 to 1.
         """
-        if self.board.is_game_over():
-            return self.game_reward(self, sc_wins, total_games)
+        self.game_over_check()
+        if self.game_over is True:
+            return self.game_reward(sc_wins, total_games)
 
-        if not color_move_legality_check(self.board, uci_move):
-            self.reward = -10
+        if self.sc_illegal_move is False:
+            self.reward = dynamic_illegal_move_punishment(sc_wins, total_games)
             return self.reward
 
         self.piece_points()
         self.mobility_points()
         self.attack_defense_points()
-        points_list = [
+
+        white = [
             self.white_mobility,
             self.white_value,
             self.white_attack,
             self.white_defense,
         ]
-        self.reward = sum(points_list) / len(points_list)
+        black = [
+            self.black_mobility,
+            self.black_value,
+            self.black_attack,
+            self.black_defense,
+        ]
 
-        # + 1/8, victory reward, 1 divided by 8 pawns
+        w = (sum(white) ** 1.2) / len(white)
+        b = (sum(black) ** 1.2) / len(black)
+
+        if self.white is True:
+            self.reward = w - b
+        elif self.white is False:
+            self.reward = b - w
+        self.reward *= 5
+
+        # + victory reward
         if is_pawn_promotion(uci_move):
-            self.reward += 0.125
+            self.reward += 10
         return self.reward
+
+    def rival_move(self):
+        "For train, either SC itself or random"
+        self.random_legal_move()
+        self.turn *= -1
+        return
 
     def sc_action(self, uci_move):
         """
-        Stockcheese moves.
+        Stockcheese train moves.
         Illegal moves return random legal moves.
+        Illegal moves are punished at step_reward.
         """
         if self.white is True:
             if self.turn == 1:
-                self.step_reward(uci_move)
-                if color_move_legality_check(self.board, uci_move):
+                if color_move_legality_check(self.board, uci_move) is True:
+                    self.process_input()
                     self.board.push_uci(uci_move)
                 else:
                     try:
                         self.board.push(chess.Move.from_uci(uci_move))
+                        self.sc_illegal_move = True
                     except AssertionError:
-                        self.random_legal_move()
+                        self.board.push(chess.Move.null())
                         self.sc_illegal_move = True
 
         elif self.white is False:
             if self.turn == -1:
-                self.step_reward(uci_move)
-                if color_move_legality_check(self.board, uci_move):
+                if color_move_legality_check(self.board, uci_move) is True:
+                    self.process_input()
                     self.board.push_uci(uci_move)
                 else:
                     try:
                         self.board.push(chess.Move.from_uci(uci_move))
+                        self.sc_illegal_move = True
                     except AssertionError:
-                        self.random_legal_move()
+                        self.board.push(chess.Move.null())
                         self.sc_illegal_move = True
         self.turn *= -1
         return
 
-    def sf_move(self):
-        """
-        Stockfish moves.
-        If sc is learning and makes illegal
-        moves, instead pick random move
-        """
-        if self.sc_illegal_move:
-            self.random_legal_move()
-        else:
-            try:
-                t = self.sf_min_time + (len(self.board.move_stack) * 12)
-                # reset sf internal state, can increase "creativity"
-                if uniform(0, 1) < (2 / 64):
-                    sf.protocol.send_line("setoption name Clear Hash")
-                    t *= 12
-                sf_move = sf.play(self.board, chess.engine.Limit(time=t)).move.uci()
-                self.board.push_uci(sf_move)
-            except (
-                chess.engine.EngineError
-            ) as err:  # sf should not return illegal moves?!?
-                date_time_print(err)
-                date_time_print(
-                    "sf is black",
-                    self.white,
-                    "illegal_move_stack =",
-                    self.sc_illegal_move,
-                )
-                print(self.board)
-                self.random_legal_move()
-        self.turn *= -1
-        return
-
-    def new_training_game(self, skill_level=0):
+    def new_training_game(self):
+        self.game_over = False
         self.sc_illegal_move = False
         self.new_game()
-        self.former_input_batches.clear()
-        sf.protocol.configure({"Skill Level": skill_level})
-        self.sf_skill_level = skill_level
-        if skill_level > 0:
-            self.sf_min_time = round(skill_level ** (skill_level / 11))
-        sf.protocol.send_line("ucinewgame")
         return

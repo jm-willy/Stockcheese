@@ -1,37 +1,64 @@
 from random import choice
 from random import uniform
 
+import numpy as np
+
 import chess
 
+from vars import sc_options
+from full_model import model
 from stockcheese_utils import (
     color_move_legality_check,
     translate_input,
     default_board_str,
 )
-from full_model import model
+
+
+# Traceback (most recent call last):
+#   File "d:\stockcheese\Stockcheese\source\training_loop_rl.py", line 80, in <module>
+#     env_chess.process_input()
+#   File "d:\stockcheese\Stockcheese\source\stockcheese.py", line 59, in process_input
+#     self.array_input = np.reshape(self.array_input, [1, self.remember, 8, 8, 1])
+#                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#   File "D:\stockcheese\.venv\Lib\site-packages\numpy\core\fromnumeric.py", line 285, in reshape
+#     return _wrapfunc(a, 'reshape', newshape, order=order)
+#            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#   File "D:\stockcheese\.venv\Lib\site-packages\numpy\core\fromnumeric.py", line 59, in _wrapfunc
+#     return bound(*args, **kwds)
+#            ^^^^^^^^^^^^^^^^^^^^
+# ValueError: cannot reshape array of size 64 into shape (1,8,8,8,1)
 
 
 class Stockcheese:
+    """
+    Uses python-chess to create games and formats data.
+
+    Args:
+        train: train new weights in chess enviroment or load from path
+    """
+
     def __init__(self, train=False):
+        """
+        Attributes:
+            remember: past boards to input, not batch size or gradient update period
+        """
         if 0.5 > uniform(0, 1):
             self.white = True
         else:
             self.white = False
 
-        if not train:
-            model.load_weights("./Stockcheese_weights.hd5")
-
         self.train = train
+        self.remember = sc_options["remember"]
         self.board = chess.Board()
-        self.translated_input = []
-        self.board_samples = 32  # not batch size/gradient update steps
-        self.former_input_batches = []
 
         # initialize with starting boards
-        self.sc_game_sequence_input = []
-        x = translate_input(position_str=default_board_str, white=self.white)
-        while len(self.sc_game_sequence_input) > self.board_samples:
-            self.sc_game_sequence_input.append(x)
+        self.game_boards_sequence = []
+        x = translate_input(board_str=default_board_str, white=self.white)
+        while len(self.game_boards_sequence) < self.remember:
+            self.game_boards_sequence.append(x)
+
+        self.array_input = np.array(self.game_boards_sequence)
+        self.array_input = np.reshape(self.array_input, [1, self.remember, 8, 8, 1])
         return
 
     def process_input(self):
@@ -39,10 +66,12 @@ class Stockcheese:
         Input to array, to array of samples.
         Delete last element to keep fixed size.
         """
-        translated_input = translate_input(self.board, self.white)
-        self.sc_game_sequence_input.append(translated_input)
-        if len(self.sc_game_sequence_input) > self.board_samples:
-            del self.sc_game_sequence_input[0]
+        translated_input = translate_input(str(self.board), self.white)
+        self.game_boards_sequence.append(translated_input)
+        if len(self.game_boards_sequence) > self.remember:
+            del self.game_boards_sequence[0]
+        self.array_input = np.array(self.game_boards_sequence)
+        self.array_input = np.reshape(self.array_input, [1, self.remember, 8, 8, 1])
         return
 
     def random_legal_move(self):
@@ -53,11 +82,17 @@ class Stockcheese:
         return
 
     def sc_play(self):
-        """use for self play too"""
+        """Use for self play too. Load weights"""
         self.process_input()
         x = model(self.board_input)
         x = self.translate_output(x[-1])
         self.board.push_uci(x)
+        return
+
+    def fill_new_board(self):
+        x = translate_input(board_str=default_board_str, white=self.white)
+        while len(self.game_boards_sequence) < self.remember:
+            self.game_boards_sequence.append(x)
         return
 
     def new_game(self):
@@ -66,7 +101,8 @@ class Stockcheese:
         else:
             self.white = False
         self.board.reset_board()
-        self.sc_game_sequence_input.clear()
+        self.game_boards_sequence.clear()
+        self.fill_new_board()
         return
 
     def human_vs_stockcheese(self):

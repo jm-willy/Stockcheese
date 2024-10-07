@@ -1,48 +1,26 @@
 import tensorflow as tf
-from vars import vars_dict
+from Stockcheese.source.custom.dense import DensePReLU
+from vars import vars_dict, sc_options
+from Stockcheese.source.custom.dense import SixDense
 
-alpha_init = vars_dict["alpha init"]
+alpha_init = vars_dict["slope init"]
 reg = vars_dict["reg"]
+input_size = sc_options["shared_model_ouput_units"]
+heads = sc_options["heads"]
+k_ratio = sc_options["keys_per_head"]
 
 
-critic_input = tf.keras.Input(shape=(512,))
+critic_input = tf.keras.Input(shape=(input_size,))
 x = critic_input
-
-
-x = tf.keras.layers.MultiHeadAttention(
-    num_heads=2,
-    key_dim=64 * 2,
-    attention_axes=-1,
-)(x, x, x)
-x = tf.keras.layers.Dense(256)(x)
-x = tf.keras.layers.PReLU(alpha_initializer=alpha_init, activity_regularizer=reg)(x)
-
-
-x = tf.keras.layers.MultiHeadAttention(
-    num_heads=2,
-    key_dim=64 * 2,
-    attention_axes=-1,
-)(x, x, x)
-x = tf.keras.layers.Dense(32)(x)
-x = tf.keras.layers.PReLU(alpha_initializer=alpha_init, activity_regularizer=reg)(x)
-
-
-x = tf.keras.layers.MultiHeadAttention(
-    num_heads=2,
-    key_dim=64 * 2,
-    attention_axes=-1,
-)(x, x, x)
-x = tf.keras.layers.Dense(4)(x)
-x = tf.keras.layers.PReLU(alpha_initializer=alpha_init, activity_regularizer=reg)(x)
-
-
-x = tf.keras.layers.MultiHeadAttention(
-    num_heads=2,
-    key_dim=64 * 2,
-    attention_axes=-1,
-)(x, x, x)
+# x = SixDense(128)(x)
+# x = SixDense(64)(x)
+# x = SixDense(32)(x)
+# x = SixDense(16)(x)
+x = DensePReLU(8)(x)
+x = DensePReLU(4)(x)
+x = DensePReLU(2)(x)
 x = tf.keras.layers.Dense(1, activation="tanh")(x)
-critic_model = tf.keras.Model(critic_input, x)
+critic_model = tf.keras.Model(critic_input, x, name="CRITIC")
 
 
 # critic_model.summary(expand_nested=True, show_trainable=True)

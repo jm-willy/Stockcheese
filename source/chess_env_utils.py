@@ -1,6 +1,32 @@
 import numpy as np
 
 from vars import moves_dict
+from vars import sc_options
+
+moves_count = sc_options["action space size"]
+
+
+# Traceback (most recent call last):
+#   File "d:\stockcheese\Stockcheese\source\training_loop_rl.py", line 90, in <module>
+#     uci_move, move_probability = translate_output_training(actor_move)
+#                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#   File "d:\stockcheese\Stockcheese\source\chess_env_utils.py", line 14, in translate_output_training
+#     index_ = np.random.choice(4048, p=actor_output) + 1
+#              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#   File "numpy\\random\\mtrand.pyx", line 971, in numpy.random.mtrand.RandomState.choice
+# ValueError: probabilities contain NaN
+
+
+def translate_output_training(actor_output):
+    """
+    Pick moves according to softmax probabilities.
+
+    Numpy is 0 indexed, moves dict is not.
+    """
+    actor_output = actor_output[-1].numpy()
+    index_ = np.random.choice(moves_count, p=actor_output) + 1
+    uci_output = moves_dict[index_]
+    return uci_output, actor_output[index_]
 
 
 def apply_outcome_discount(step_reward_list, compound_rate=0.995):
@@ -13,16 +39,28 @@ def apply_outcome_discount(step_reward_list, compound_rate=0.995):
     return result_list[::-1]
 
 
-def reward_successful_exploration(action_probs):
+def reward_successful_exploration(action_probs, times=0.25):
     """
-    Use on softmax output. Increases the odds of unlikely
-    movements
+    Use on softmax output after a win.
+
+    Further increases odds of unlikely movements
     """
     result_list = []
     for i in action_probs:
-        x = i ** (1 / 2)
-        x = (x + i) / 2
-        result_list.append(x)
+        result_list.append(i ** (1 + times))
+    return result_list
+
+
+def reward_fast_wins(rewards_list):
+    """
+    No one likes long boring stuff.
+    List len has to be equal to moves.
+    """
+    x = sc_options["fast_game_len"] / len(rewards_list)
+
+    result_list = []
+    for i in rewards_list:
+        result_list.append(x * i)
     return result_list
 
 
@@ -35,12 +73,13 @@ def dynamic_draw_punishment(sc_wins, total_games):
     return x * 5
 
 
-def translate_output_training(actor_output):
-    """pick moves according to softmax probabilities"""
-    actor_output = actor_output[-1].numpy()
-    index_ = np.random.choice(4048, p=actor_output)
-    uci_output = moves_dict[index_]
-    return uci_output, actor_output[index_]
+def dynamic_illegal_move_punishment(sc_wins, total_games):
+    """the better sc gets the more punishing is an illegal move"""
+    try:
+        x = -(sc_wins / total_games)
+    except ZeroDivisionError:
+        x = -0.1
+    return x * 10
 
 
 def is_pawn_promotion(uci_move):
@@ -52,4 +91,5 @@ def is_pawn_promotion(uci_move):
 
 
 def normalize_iter(iter):
-    return (iter - np.min(iter)) / (np.max(iter) - np.min(iter))
+    x = (iter - np.min(iter)) / (np.max(iter) - np.min(iter))
+    return x.tolist()

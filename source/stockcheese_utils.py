@@ -1,6 +1,4 @@
-from email.policy import default
 import numpy as np
-import tensorflow as tf
 
 from vars import moves_dict
 
@@ -17,8 +15,13 @@ R N B Q K B N R
 
 
 def translate_output(actor_output):
-    """picks the move with highest softmax"""
-    index_ = tf.argmax(actor_output, axis=-1).numpy()[0]
+    """
+    For inference, not for training. Picks the move with
+    highest softmax.
+
+    Moves are 1 indexed but numpy uses 0 indexing.
+    """
+    index_ = np.argmax(actor_output, axis=-1) + 1
     uci_output = moves_dict[index_]
     return uci_output
 
@@ -31,13 +34,16 @@ def color_move_legality_check(board, uci_move):
     return legal
 
 
-def translate_input(position_str, white):
+def translate_input(board_str, white):
     """
-    String with letters to np array.
-    Invertes board so that SC always plays with the bottom pieces.
+    Board string with piece letters to np array.
+    Invertes board so that SC always starts with the bottom pieces.
     """
+    if type(board_str) is not str:
+        raise ValueError("board_str wrong type")
+
     # Map piece to number (positive for white, negative for black)
-    pieces = {
+    pieces_dict = {
         "P": 1,
         "p": -1,  # Pawns
         "N": 2,
@@ -53,22 +59,22 @@ def translate_input(position_str, white):
     }
 
     # Split the position string into rows
-    rows = position_str.strip().split("\n")
+    rows = board_str.strip().split("\n")
 
     # Create an 8x8 numpy array
-    board = np.zeros((8, 8), dtype=np.float32)
+    board_np = np.zeros((8, 8), dtype=np.float32)
 
     # Fill the array with piece floats
     for i, row in enumerate(rows):
         pieces = row.split()
         for j, piece in enumerate(pieces):
             if piece != ".":
-                board[i][j] = pieces[piece] * 0.1
+                board_np[i][j] = pieces_dict[piece] * 0.15
 
     # Invert board
     if not white:
-        board = board[::-1]
-    return board
+        board_np = board_np[::-1]
+    return board_np
 
 
 # def translate_input(board, white):

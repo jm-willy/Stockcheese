@@ -1,17 +1,21 @@
 import tensorflow as tf
+import numpy as np
+
+save_path = "./Stockcheese_weights.hd5"
 
 vars_dict = {
-    "alpha init": tf.initializers.constant(0.24),
-    "sf path": r"D:\stockcheese\Stockcheese\Stockfish executable\stockfish\stockfish-windows-x86-64",
+    "slope init": tf.initializers.constant(0.24),
     "reg": tf.keras.regularizers.L2(l2=0.00),
-    "action space size": 0,  # 4048
+    "action space size": 0,  # 4048, how many possible moves
 }
 
-sf_options = {
-    "Threads": 4,
-    "Hash": 512,  # in MB
-    "Skill Level": 0,  # 20 is max difficulty: above 3500 elo in most devices
-    "Move Overhead": 5000,  # set this large for trainig
+# StockCheese training options
+sc_options = {
+    "fast_game_len": 24,  # to reward fast wins
+    "remember": 8,  # past boards to input, not batch size or gradient update period
+    "shared_model_ouput_units": 256,
+    "heads": 2,
+    "keys_per_head": 48,
 }
 
 # custom piece values for unique play style
@@ -23,6 +27,7 @@ piece_value_dict = {
     5: 9,  # chess.QUEEN: chess.PieceType = 5
 }
 
+# numeric key : uci move
 moves_dict = {}
 
 
