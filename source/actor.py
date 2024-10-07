@@ -12,7 +12,7 @@ heads = sc_options["heads"]
 k_ratio = sc_options["keys_per_head"]
 moves_count = sc_options["action space size"]
 
-critic_feedback_size = 1
+critic_feedback_size = 2
 input_size += critic_feedback_size
 
 
