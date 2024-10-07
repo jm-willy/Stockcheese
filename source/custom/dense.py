@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 
-from hyperparameters import slope_init, reg
+from custom.hyperparameters import slope_init, reg
 
 
 class DensePReLU(tf.keras.Model):
@@ -9,7 +9,7 @@ class DensePReLU(tf.keras.Model):
         super().__init__()
         self.L = tf.keras.layers.Dense(units)
         self.A = tf.keras.layers.PReLU(
-            slope_initializer=slope_init,
+            alpha_initializer=slope_init,
             activity_regularizer=reg,
         )
         return

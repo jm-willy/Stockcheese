@@ -1,8 +1,8 @@
 import tensorflow as tf
 
 
-from hyperparameters import slope_init, reg
-from hyperparameters import heads, key_to_head_ratio
+from custom.hyperparameters import slope_init, reg
+from custom.hyperparameters import heads, key_to_head_ratio
 
 
 # Attention doesn't work inside class, bug
@@ -21,7 +21,7 @@ class DeepAttention(tf.keras.Model):
         )
         self.dense = tf.keras.layers.Dense(units)
         self.activation = tf.keras.layers.PReLU(
-            slope_initializer=slope_init,
+            alpha_initializer=slope_init,
             activity_regularizer=reg,
         )
         return
@@ -47,7 +47,7 @@ class AttentionBlock(tf.keras.Model):
         )
         self.dense = tf.keras.layers.Dense(units)
         self.activation = tf.keras.layers.PReLU(
-            slope_initializer=slope_init,
+            alpha_initializer=slope_init,
             activity_regularizer=reg,
         )
         return
