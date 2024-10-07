@@ -14,21 +14,6 @@ from stockcheese_utils import (
 )
 
 
-# Traceback (most recent call last):
-#   File "d:\stockcheese\Stockcheese\source\training_loop_rl.py", line 80, in <module>
-#     env_chess.process_input()
-#   File "d:\stockcheese\Stockcheese\source\stockcheese.py", line 59, in process_input
-#     self.array_input = np.reshape(self.array_input, [1, self.remember, 8, 8, 1])
-#                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-#   File "D:\stockcheese\.venv\Lib\site-packages\numpy\core\fromnumeric.py", line 285, in reshape
-#     return _wrapfunc(a, 'reshape', newshape, order=order)
-#            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-#   File "D:\stockcheese\.venv\Lib\site-packages\numpy\core\fromnumeric.py", line 59, in _wrapfunc
-#     return bound(*args, **kwds)
-#            ^^^^^^^^^^^^^^^^^^^^
-# ValueError: cannot reshape array of size 64 into shape (1,8,8,8,1)
-
-
 class Stockcheese:
     """
     Uses python-chess to create games and formats data.
@@ -51,7 +36,7 @@ class Stockcheese:
         self.remember = sc_options["remember"]
         self.board = chess.Board()
 
-        # initialize with starting boards
+        # initialize with start boards
         self.game_boards_sequence = []
         x = translate_input(board_str=default_board_str, white=self.white)
         while len(self.game_boards_sequence) < self.remember:

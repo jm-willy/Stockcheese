@@ -1,7 +1,7 @@
 import tensorflow as tf
 
-from Stockcheese.source.custom.dense import SixDense
-from Stockcheese.source.custom.dense import DensePReLU
+from custom.dense import SixDense
+from custom.dense import DensePReLU
 from vars import vars_dict, sc_options
 
 

@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from Stockcheese.source.custom.loss import MyLoss, my_loss
+from custom.loss import MyLoss, my_loss
 
 
 class TestCustomLoss(unittest.TestCase):

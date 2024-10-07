@@ -1,7 +1,8 @@
 import tensorflow as tf
-from Stockcheese.source.custom.dense import DensePReLU
 from vars import vars_dict, sc_options
-from Stockcheese.source.custom.dense import SixDense
+
+from custom.dense import DensePReLU
+from custom.dense import SixDense
 
 alpha_init = vars_dict["slope init"]
 reg = vars_dict["reg"]
