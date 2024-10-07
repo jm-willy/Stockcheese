@@ -1,8 +1,9 @@
 import tensorflow as tf
 
+from vars import vars_dict, sc_options
 from custom.dense import SixDense
 from custom.dense import DensePReLU
-from vars import vars_dict, sc_options
+# from custom.activations import madmax
 
 
 alpha_init = vars_dict["slope init"]
