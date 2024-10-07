@@ -2,6 +2,8 @@ import tensorflow as tf
 
 
 class Conv3dBlock(tf.keras.Model):
+    """Limited use, add args"""
+
     def __init__(self):
         super().__init__()
         self.conv1 = tf.keras.layers.Conv3D(

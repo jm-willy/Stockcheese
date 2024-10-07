@@ -51,11 +51,12 @@ def proportional_repr(x):
 @tf.function
 def madmax(x):
     """
-    Proportional representation activation. Alternative to softmax.
-    Leaky relu is placed before to avoid 0 mean and thus
-    0 division errors.
+    Proportional representation activation. Numerical stable
+    Alternative to softmax. Leaky relu is placed before to
+    avoid 0 mean and thus 0 division errors.
 
-    Hardmax name is already taken.
+    Hardmax name is already taken, madmax was the only
+    reasonable option left for naming.
     """
     x = tf.keras.ops.leaky_relu(x, negative_slope=0.2)
     x = proportional_repr(x)
