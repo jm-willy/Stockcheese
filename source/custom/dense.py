@@ -26,6 +26,7 @@ class SixDense(tf.keras.Model):
         self.l1 = DensePReLU(units)
         self.l2 = DensePReLU(units)
         self.l3 = DensePReLU(units)
+
         self.l4 = DensePReLU(units)
         self.l5 = DensePReLU(units)
         self.l6 = DensePReLU(units)

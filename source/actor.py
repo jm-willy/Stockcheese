@@ -20,9 +20,9 @@ input_size += critic_feedback_size
 actor_input = tf.keras.Input((input_size,))
 x = actor_input
 # x = SixDense(256)(x)
-x = DensePReLU(moves_count)(x)
-x = tf.keras.layers.Softmax()(x)
-# x = madmax(x)
+# x = DensePReLU(moves_count)(x)
+# x = tf.keras.layers.Softmax()(x)
+# x = tf.keras.layers.Dense(moves_count, activation=madmax)(x)
 actor_model = tf.keras.Model(actor_input, x, name="ACTOR")
 
 
