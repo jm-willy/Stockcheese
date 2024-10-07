@@ -15,7 +15,7 @@ Stockcheese is pure artifical neural network following the actor-critic paradigm
 
 - Exploration is rewarding for wins, allowing SC to learn to explore better trees.
 
-- Faster wins are more rewarding. However, slow loses and draws are not more punishing.
+- Faster wins are more rewarding. However, slow losses and draws are not more punishing.
 
 ## Install for dev
 1. git clone
