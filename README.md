@@ -20,8 +20,6 @@ Stockcheese is pure artifical neural network following the actor-critic paradigm
 ## Install for dev
 1. git clone
 2. pip install -r requirements.txt
-3. downloand Stockfish executable for your OS
-4. add path to Stockfish executable in vars.py
 
 ## Use trained model
 See save_path = "./Stockcheese_weights.hd5" for trained weights
