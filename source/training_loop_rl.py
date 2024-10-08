@@ -11,7 +11,7 @@ from chess_env import ChessEnvironment
 from chess_env_utils import apply_outcome_discount
 from chess_env_utils import reward_fast_wins
 from chess_env_utils import reward_successful_exploration
-from chess_env_utils import normalize_iter
+from custom.normalization import normalize_to_bounds
 from chess_env_utils import translate_output_training
 from full_model import model
 from time_utils import date_time_print
@@ -125,7 +125,7 @@ while True:
 
         # discount then normalize rewards
         reward_list = apply_outcome_discount(reward_list)
-        reward_list = normalize_iter(reward_list)
+        reward_list = normalize_to_bounds(reward_list)
         if reward > 0 and env_chess.game_over is True:
             act_probs_list = reward_successful_exploration(act_probs_list)
             reward_list = reward_fast_wins(reward_list)
