@@ -36,6 +36,7 @@ class ChessEnvironment(Stockcheese):
         self.reward = None
         self.sc_illegal_move = False
         self.game_over = False
+        self.no_0_division = 0.01
 
         if self.white is True:
             self.turn = 1
@@ -63,8 +64,8 @@ class ChessEnvironment(Stockcheese):
             except KeyError:
                 pass
 
-        self.white_value = white_points / black_points
-        self.black_value = black_points / white_points
+        self.white_value = white_points / (black_points + self.no_0_division)
+        self.black_value = black_points / (white_points + self.no_0_division)
         return
 
     def mobility_points(self):
@@ -80,8 +81,8 @@ class ChessEnvironment(Stockcheese):
             white_count = self.board.legal_moves.count()
             self.board.pop()
 
-        self.white_mobility = white_count / black_count
-        self.black_mobility = black_count / white_count
+        self.white_mobility = white_count / (black_count + self.no_0_division)
+        self.black_mobility = black_count / (white_count + self.no_0_division)
         return
 
     def attack_defense_points(self):
@@ -119,11 +120,11 @@ class ChessEnvironment(Stockcheese):
                 elif i in w_squares:
                     b_attack += 1
 
-        self.white_attack = w_attack / b_attack
-        self.black_attack = b_attack / w_attack
+        self.white_attack = w_attack / (b_attack + self.no_0_division)
+        self.black_attack = b_attack / (w_attack + self.no_0_division)
 
-        self.white_defense = w_defense / b_defense
-        self.black_defense = b_defense / w_defense
+        self.white_defense = w_defense / (b_defense + self.no_0_division)
+        self.black_defense = b_defense / (w_defense + self.no_0_division)
         return
 
     def game_reward(self, sc_wins, total_games):
@@ -146,9 +147,12 @@ class ChessEnvironment(Stockcheese):
     def game_over_check(self):
         # if self.board.legal_moves.count() < 10:
         #     self.game_over = True
-        if self.board.is_game_over():
-            self.game_over = True
-        else:
+        try:
+            if self.board.is_game_over():
+                self.game_over = True
+            else:
+                self.game_over = False
+        except AssertionError:
             self.game_over = False
         return self.game_over
 
