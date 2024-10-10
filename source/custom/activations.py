@@ -61,17 +61,18 @@ def madmax(x):
     Proportional representation activation. Numerical stable
     Alternative to softmax.
 
-    Squared leaky hard tanh is placed before to avoid 0 mean,
-    0 division and negative probabilities.
+    (Squared+abs)/2 leaky hard tanh is placed before to avoid
+    0 mean, 0 derivative, 0 division and negative probabilities.
 
     Hardmax name is already taken, madmax was the only
     reasonable name left.
     """
     # x = tf.keras.ops.leaky_relu(x, negative_slope=0.2)
     # x = leaky_hard_sigmoid(x)
-    x = leaky_hard_tanh(x)
     # x = tf.keras.ops.absolute(x)
-    x = x**2
+    x = leaky_hard_tanh(x)
+    x = x**2 + tf.keras.ops.absolute(x)
+    x = x / 2.15
     x = proportional_repr(x)
     return x
 
