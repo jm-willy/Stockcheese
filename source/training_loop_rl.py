@@ -71,7 +71,7 @@ while True:
 
             date_time_print("_" * 40)
             date_time_print(i + 1, "of", steps_to_gradient_update)
-            print(env_chess.board)
+            # print(env_chess.board)
             criticism = None
             uci_move = None
             move_probability = None
