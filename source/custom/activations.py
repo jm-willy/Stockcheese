@@ -17,6 +17,13 @@ def my_hard_tanh(x):
 
 
 @tf.function
+def leaky_hard_sigmoid(x, slope=0.05):
+    x = my_hard_sigmoid(x)
+    x = x + (x * slope)
+    return x
+
+
+@tf.function
 def leaky_hard_tanh(x, slope=0.05):
     x = my_hard_tanh(x)
     x = x + (x * slope)
@@ -52,13 +59,19 @@ def proportional_repr(x):
 def madmax(x):
     """
     Proportional representation activation. Numerical stable
-    Alternative to softmax. Leaky relu is placed before to
-    avoid 0 mean and thus 0 division errors.
+    Alternative to softmax.
+
+    Squared leaky hard tanh is placed before to avoid 0 mean,
+    0 division and negative probabilities.
 
     Hardmax name is already taken, madmax was the only
-    reasonable option left for naming.
+    reasonable name left.
     """
-    x = tf.keras.ops.leaky_relu(x, negative_slope=0.2)
+    # x = tf.keras.ops.leaky_relu(x, negative_slope=0.2)
+    # x = leaky_hard_sigmoid(x)
+    x = leaky_hard_tanh(x)
+    # x = tf.keras.ops.absolute(x)
+    x = x**2
     x = proportional_repr(x)
     return x
 
