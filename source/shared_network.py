@@ -48,8 +48,8 @@ x = DensePReLU(output_units)(x)
 shared_model = tf.keras.Model(shared_model_inputs, x, name="SHARED.MODEL")
 
 
-shared_model.summary(expand_nested=True, show_trainable=True)
-shared_model.compile(
-    optimizer="adam", loss="sparse_categorical_crossentropy", metrics=["accuracy"]
-)
-print("compiled")
+# shared_model.summary(expand_nested=True, show_trainable=True)
+# shared_model.compile(
+#     optimizer="adam", loss="sparse_categorical_crossentropy", metrics=["accuracy"]
+# )
+# print("compiled")

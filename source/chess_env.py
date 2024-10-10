@@ -36,7 +36,7 @@ class ChessEnvironment(Stockcheese):
         self.reward = None
         self.sc_illegal_move = False
         self.game_over = False
-        self.no_0_division = 0.01
+        self.no_0_division = 0.1
 
         if self.white is True:
             self.turn = 1
@@ -186,14 +186,14 @@ class ChessEnvironment(Stockcheese):
             self.black_defense,
         ]
 
-        w = (sum(white) ** 1.2) / len(white)
-        b = (sum(black) ** 1.2) / len(black)
+        w = (sum(white) ** 2) / len(white)
+        b = (sum(black) ** 2) / len(black)
 
         if self.white is True:
             self.reward = w - b
         elif self.white is False:
             self.reward = b - w
-        self.reward *= 5
+        self.reward *= 2
 
         # + victory reward
         if is_pawn_promotion(uci_move):

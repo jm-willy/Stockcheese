@@ -9,6 +9,10 @@ class TestCustomNormalization(unittest.TestCase):
         self.assertTrue(test_x[0] == 0)
         self.assertTrue(test_x[1] == 0.5)
         self.assertTrue(test_x[2] == 1)
+        test_x = normalize_to_bounds([1, 1, 1], bounds=1)
+        self.assertTrue(test_x[0] == 0.5)
+        self.assertTrue(test_x[1] == 0.5)
+        self.assertTrue(test_x[2] == 0.5)
         return
 
     def normalize_to_bounds(self):
@@ -20,6 +24,10 @@ class TestCustomNormalization(unittest.TestCase):
         self.assertTrue(test_x[0] == -100)
         self.assertTrue(test_x[1] == 0)
         self.assertTrue(test_x[2] == 100)
+        test_x = normalize_to_bounds([1, 1, 1], bounds=1)
+        self.assertTrue(test_x[0] == 0)
+        self.assertTrue(test_x[1] == 0)
+        self.assertTrue(test_x[2] == 0)
         return
 
 

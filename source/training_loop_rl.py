@@ -17,6 +17,8 @@ from full_model import model
 from time_utils import date_time_print
 from vars import save_path
 
+from debug_utils import locate_NaNs
+
 
 env_chess = ChessEnvironment()
 mse_loss = tf.keras.losses.MeanSquaredError()
@@ -71,6 +73,7 @@ while True:
 
             date_time_print("_" * 40)
             date_time_print(i + 1, "of", steps_to_gradient_update)
+            date_time_print("env_chess.white =", env_chess.white)
             # print(env_chess.board)
             criticism = None
             uci_move = None
@@ -123,9 +126,33 @@ while True:
             if uniform(0, 1) <= (wins_at_level / games_at_level):
                 loss_f = mae_loss
 
+        print("^" * 110)
+        white = [
+            env_chess.white_mobility,
+            env_chess.white_value,
+            env_chess.white_attack,
+            env_chess.white_defense,
+        ]
+        date_time_print("white points", white)
+        black = [
+            env_chess.black_mobility,
+            env_chess.black_value,
+            env_chess.black_attack,
+            env_chess.black_defense,
+        ]
+        date_time_print("black points", black)
+        print("^" * 110)
+
         # discount then normalize rewards
-        reward_list = apply_outcome_discount(reward_list)
+        print("|" * 110)
+        date_time_print("reward list =", reward_list)
         reward_list = normalize_to_bounds(reward_list)
+        print("|" * 110)
+        date_time_print("normalized =", reward_list)
+        reward_list = apply_outcome_discount(reward_list)
+        print("|" * 110)
+        date_time_print("discounted and normalized =", reward_list)
+        print("|" * 110)
         if reward > 0 and env_chess.game_over is True:
             act_probs_list = reward_successful_exploration(act_probs_list)
             reward_list = reward_fast_wins(reward_list)
@@ -146,7 +173,17 @@ while True:
         gradients = tape.gradient(total_loss, model.trainable_variables)
         optimizer.apply_gradients(zip(gradients, model.trainable_variables))
         gradient_updates += 1
-        date_time_print(zip(gradients, model.trainable_variables))
+        print("+" * 110)
+
+        locate_NaNs(gradients, model.trainable_variables)
+
+        # for j, k in zip(gradients, model.trainable_variables):
+        #     date_time_print(j, k)
+        # tf.keras.ops.isnan(k[0].numpy())
+        # np.isnan(k[0].numpy())
+        print("+" * 110)
+
+        input("continue")
 
         # with debug_logger.as_default():
         #     tf.summary.trace_export(f"DEBUG.{i}", step=i)
