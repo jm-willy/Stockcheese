@@ -17,7 +17,7 @@ from full_model import model
 from time_utils import date_time_print
 from vars import save_path
 
-from debug_utils import locate_NaNs
+from debug_utils import gradient_at_step, locate_NaNs
 
 
 env_chess = ChessEnvironment()
@@ -55,17 +55,17 @@ new_game = True
 # date_time_print("Starting training")
 # print("tf.executing_eagerly =", tf.executing_eagerly())
 while True:
-    # print()
-    # date_time_print(
-    #     "total_moves =",
-    #     total_moves,
-    #     "skill_level =",
-    #     level,
-    #     "games_at_level =",
-    #     games_at_level,
-    #     "gradient_updates =",
-    #     gradient_updates,
-    # )
+    print()
+    date_time_print(
+        "total_moves =",
+        total_moves,
+        "skill_level =",
+        level,
+        "games_at_level =",
+        games_at_level,
+        "gradient_updates =",
+        gradient_updates,
+    )
     with tf.GradientTape() as tape:
         for i in range(0, steps_to_gradient_update):
             if new_game:
@@ -73,7 +73,7 @@ while True:
 
             date_time_print("_" * 40)
             date_time_print(i + 1, "of", steps_to_gradient_update)
-            date_time_print("env_chess.white =", env_chess.white)
+            date_time_print("Stockcheese white =", env_chess.white)
             # print(env_chess.board)
             criticism = None
             uci_move = None
@@ -126,7 +126,9 @@ while True:
             if uniform(0, 1) <= (wins_at_level / games_at_level):
                 loss_f = mae_loss
 
-        print("^" * 110)
+        # check here the stupid point internals
+
+        print("|" * 110)
         white = [
             env_chess.white_mobility,
             env_chess.white_value,
@@ -141,18 +143,16 @@ while True:
             env_chess.black_defense,
         ]
         date_time_print("black points", black)
-        print("^" * 110)
+        print("|" * 110)
 
         # discount then normalize rewards
-        print("|" * 110)
+        print("+" * 110)
         date_time_print("reward list =", reward_list)
         reward_list = normalize_to_bounds(reward_list)
-        print("|" * 110)
         date_time_print("normalized =", reward_list)
         reward_list = apply_outcome_discount(reward_list)
-        print("|" * 110)
         date_time_print("discounted and normalized =", reward_list)
-        print("|" * 110)
+        print("+" * 110)
         if reward > 0 and env_chess.game_over is True:
             act_probs_list = reward_successful_exploration(act_probs_list)
             reward_list = reward_fast_wins(reward_list)
@@ -161,29 +161,33 @@ while True:
         critic_loss = 0
         actor_loss = 0
         for j in range(len(reward_list)):
-            critic_loss += loss_f(reward_list[j], criticism_list[j])
             advantage = reward_list[j] - criticism_list[j]
             actor_loss += -math.log(act_probs_list[j]) * advantage
+            critic_loss += loss_f(reward_list[j], criticism_list[j])
+
+        # actor_loss = float(actor_loss)
 
         date_time_print("critic_loss =", critic_loss)
         date_time_print("actor_loss =", actor_loss)
 
         # gradient update
-        total_loss = critic_loss + actor_loss
+        # total_loss = critic_loss + actor_loss
+        total_loss = [critic_loss, actor_loss]
         gradients = tape.gradient(total_loss, model.trainable_variables)
         optimizer.apply_gradients(zip(gradients, model.trainable_variables))
         gradient_updates += 1
-        print("+" * 110)
 
         locate_NaNs(gradients, model.trainable_variables)
+        # gradient_at_step(34, gradients, model.trainable_variables)
+        # gradient_at_step(33, gradients, model.trainable_variables)
+        # gradient_at_step(32, gradients, model.trainable_variables)
+        # gradient_at_step(31, gradients, model.trainable_variables)
+        # gradient_at_step(30, gradients, model.trainable_variables)
+        # gradient_at_step(29, gradients, model.trainable_variables)
+        # gradient_at_step(28, gradients, model.trainable_variables)
+        # gradient_at_step(27, gradients, model.trainable_variables)
 
-        # for j, k in zip(gradients, model.trainable_variables):
-        #     date_time_print(j, k)
-        # tf.keras.ops.isnan(k[0].numpy())
-        # np.isnan(k[0].numpy())
-        print("+" * 110)
-
-        input("continue")
+        input("¿ continue ?")
 
         # with debug_logger.as_default():
         #     tf.summary.trace_export(f"DEBUG.{i}", step=i)
