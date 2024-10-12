@@ -71,8 +71,9 @@ def madmax(x):
     # x = leaky_hard_sigmoid(x)
     # x = tf.keras.ops.absolute(x)
     x = leaky_hard_tanh(x)
-    x = x**2 + tf.keras.ops.absolute(x)
-    x = x / 2.15
+    # x = x**2 + tf.keras.ops.absolute(x)
+    # x = x / 2.15
+    x = x**2
     x = proportional_repr(x)
     return x
 
