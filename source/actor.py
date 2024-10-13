@@ -1,10 +1,7 @@
 import tensorflow as tf
-
-from vars import vars_dict, sc_options
-from custom.dense import SixDense
-from custom.dense import DensePReLU
 from custom.activations import madmax
-
+from custom.dense import DensePReLU, SixDense
+from vars import sc_options, vars_dict
 
 alpha_init = vars_dict["slope init"]
 reg = vars_dict["reg"]
@@ -17,7 +14,7 @@ input_size = sc_options["shared_model_ouput_units"]
 # input_size += critic_feedback_size
 
 
-actor_input = tf.keras.Input((input_size,))
+actor_input = tf.keras.Input(shape=(input_size,))
 x = actor_input
 # x = SixDense(256)(x)
 # x = DensePReLU(moves_count)(x)

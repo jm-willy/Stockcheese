@@ -1,10 +1,7 @@
 import tensorflow as tf
 from custom.convolutional import Conv3dBlock
-from custom.dense import DensePReLU
-from vars import vars_dict, sc_options
-
-from custom.dense import SixDense
-
+from custom.dense import DensePReLU, SixDense
+from vars import sc_options, vars_dict
 
 alpha_init = vars_dict["slope init"]
 reg = vars_dict["reg"]
@@ -18,15 +15,15 @@ k_ratio = sc_options["keys_per_head"]
 shared_model_inputs = tf.keras.Input((rem, 8, 8, 1))
 x = shared_model_inputs
 x = Conv3dBlock()(x)
-x = Conv3dBlock()(x)
-x = Conv3dBlock()(x)
+# x = Conv3dBlock()(x)
+# x = Conv3dBlock()(x)
 # x = tf.keras.layers.Concatenate(axis=-1)(
 #     [
 #         tf.keras.layers.Flatten()(x),
 #         tf.keras.layers.Flatten()(shared_model_inputs),
 #     ]
 # )
-x = tf.keras.layers.Flatten()(x)  ##########3
+x = tf.keras.layers.Flatten()(x)  ##########
 x = DensePReLU(640)(x)
 
 
@@ -45,7 +42,7 @@ x = DensePReLU(640)(x)
 
 # x = SixDense(output_units)(x)
 x = DensePReLU(output_units)(x)
-shared_model = tf.keras.Model(shared_model_inputs, x, name="SHARED.MODEL")
+shared_model = tf.keras.Model(shared_model_inputs, x, name="SHARED_MODEL")
 
 
 # shared_model.summary(expand_nested=True, show_trainable=True)

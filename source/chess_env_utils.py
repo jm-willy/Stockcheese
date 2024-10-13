@@ -1,7 +1,5 @@
 import numpy as np
-
-from vars import moves_dict
-from vars import vars_dict, sc_options
+from vars import moves_dict, sc_options, vars_dict
 
 moves_count = vars_dict["action space size"]
 
@@ -29,7 +27,7 @@ def translate_output_training(actor_output):
     return uci_output, actor_output[index_]
 
 
-def apply_outcome_discount(step_reward_list, compound_rate=0.995):
+def time_discount(step_reward_list, compound_rate=0.995):
     """use before normalization"""
     result_list = []
     counter = 1
@@ -39,7 +37,7 @@ def apply_outcome_discount(step_reward_list, compound_rate=0.995):
     return result_list[::-1]
 
 
-def reward_successful_exploration(action_probs, times=0.25):
+def reward_successful_exploration(action_probs, times=1.25):
     """
     Use on softmax output after a win.
 
@@ -47,7 +45,7 @@ def reward_successful_exploration(action_probs, times=0.25):
     """
     result_list = []
     for i in action_probs:
-        result_list.append(i ** (1 + times))
+        result_list.append(i**times)
     return result_list
 
 
@@ -67,19 +65,19 @@ def reward_fast_wins(rewards_list):
 def dynamic_draw_punishment(sc_wins, total_games):
     """the better sc gets the more punishing is a draw"""
     try:
-        x = -(sc_wins / total_games)
+        x = sc_wins / total_games
     except ZeroDivisionError:
-        x = -0.1
-    return x * 5
+        x = 0.1
+    return -x * 5
 
 
 def dynamic_illegal_move_punishment(sc_wins, total_games):
     """the better sc gets the more punishing is an illegal move"""
     try:
-        x = -(sc_wins / total_games)
+        x = sc_wins / total_games
     except ZeroDivisionError:
-        x = -0.1
-    return x * 10
+        x = 0.1
+    return -x * 12
 
 
 def is_pawn_promotion(uci_move):
@@ -88,8 +86,3 @@ def is_pawn_promotion(uci_move):
     if uci_move[-1] == "Q":
         return True
     return False
-
-
-def normalize_iter(iter):
-    x = (iter - np.min(iter)) / (np.max(iter) - np.min(iter))
-    return x.tolist()

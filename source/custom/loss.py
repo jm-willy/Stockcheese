@@ -21,3 +21,9 @@ class MyLoss(tf.keras.losses.Loss):
     def call(self, y_true, y_pred):
         x = my_loss(y_true, y_pred, b=self.b)
         return tf.math.reduce_mean(x, axis=-1)
+
+
+# @tf.function
+# def actor_loss_func(action_probability, reward, predicted_reward):
+#     x = tf.keras.ops.log(action_probability) - (reward - predicted_reward)
+#     return x

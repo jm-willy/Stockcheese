@@ -88,3 +88,18 @@ for epoch in range(n_epochs):
 
 # print("\nTraining complete. To view the TensorBoard logs, run:")
 # print(f"tensorboard --logdir {log_dir}")
+
+
+full_input = tf.keras.layers.Input(shape=(input_size, 8, 8, 1))
+x = shared_model(full_input)
+critic_feedback = critic_model(x)
+action = actor_model(x)
+model = tf.keras.Model(
+    inputs=full_input, outputs=[critic_feedback, action], name="FULL.MODEL"
+)
+
+
+actor_input = tf.keras.Input((actor_input_size,))
+x = actor_input
+x = tf.keras.layers.Dense(moves_count, activation="softmax")(x)
+actor_model = tf.keras.Model(actor_input, x, name="ACTOR")

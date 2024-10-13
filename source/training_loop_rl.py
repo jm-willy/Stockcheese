@@ -1,24 +1,21 @@
 import math
 from random import uniform
 
+import numpy as np
 import tensorflow as tf
-
-# tf.debugging.experimental.enable_dump_debug_info(
-#     "./log/", tensor_debug_mode="FULL_HEALTH", circular_buffer_size=-1
-# )
-
 from chess_env import ChessEnvironment
-from chess_env_utils import apply_outcome_discount
-from chess_env_utils import reward_fast_wins
-from chess_env_utils import reward_successful_exploration
+from chess_env_utils import (
+    reward_fast_wins,
+    reward_successful_exploration,
+    time_discount,
+    translate_output_training,
+)
+from custom.loss import actor_loss_func
 from custom.normalization import normalize_to_bounds
-from chess_env_utils import translate_output_training
+from debug_utils import gradient_at_step, locate_NaNs
 from full_model import model
 from time_utils import date_time_print
 from vars import save_path
-
-from debug_utils import gradient_at_step, locate_NaNs
-
 
 env_chess = ChessEnvironment()
 mse_loss = tf.keras.losses.MeanSquaredError()
@@ -33,27 +30,11 @@ criticism_list, act_probs_list, reward_list = [], [], []
 total_moves, gradient_updates = 0, 0
 new_game = True
 
-# tf debug
-# debug_logger = tf.summary.create_file_writer("./log/")
-# tf.summary.trace_on(graph=True)
-# with debug_logger.as_default():
-# tf.summary.trace_on(graph=True)
-#     # tf.summary.trace_export("*** DEBUG ***", step=0)
-# # with debug_logger.as_default():
-# #     tf.summary.trace_export(f"*** DEBUG {i}***")
 
-
-# with tf.summary_writer.as_default():
-#     tf.summary.scalar("loss", loss, step=step)
-#     for var, grad in zip(model.trainable_variables, gradients):
-#         tf.summary.histogram(f"{var.name}/gradients", grad, step=step)
-#         tf.summary.histogram(f"{var.name}/values", var, step=step)
-
-
-# print()
-# date_time_print("*" * 50)
-# date_time_print("Starting training")
-# print("tf.executing_eagerly =", tf.executing_eagerly())
+print()
+date_time_print("*" * 50)
+date_time_print("Starting training")
+print("tf.executing_eagerly =", tf.executing_eagerly())
 while True:
     print()
     date_time_print(
@@ -126,33 +107,14 @@ while True:
             if uniform(0, 1) <= (wins_at_level / games_at_level):
                 loss_f = mae_loss
 
-        # check here the stupid point internals
-
-        print("|" * 110)
-        white = [
-            env_chess.white_mobility,
-            env_chess.white_value,
-            env_chess.white_attack,
-            env_chess.white_defense,
-        ]
-        date_time_print("white points", white)
-        black = [
-            env_chess.black_mobility,
-            env_chess.black_value,
-            env_chess.black_attack,
-            env_chess.black_defense,
-        ]
-        date_time_print("black points", black)
-        print("|" * 110)
-
         # discount then normalize rewards
-        print("+" * 110)
-        date_time_print("reward list =", reward_list)
+        # print("+" * 110),
+        # date_time_print("reward list =", reward_list)
         reward_list = normalize_to_bounds(reward_list)
-        date_time_print("normalized =", reward_list)
-        reward_list = apply_outcome_discount(reward_list)
-        date_time_print("discounted and normalized =", reward_list)
-        print("+" * 110)
+        # date_time_print("normalized =", reward_list)
+        reward_list = time_discount(reward_list)
+        date_time_print("discounted =", reward_list)
+        # print("+" * 110)
         if reward > 0 and env_chess.game_over is True:
             act_probs_list = reward_successful_exploration(act_probs_list)
             reward_list = reward_fast_wins(reward_list)
@@ -162,17 +124,27 @@ while True:
         actor_loss = 0
         for j in range(len(reward_list)):
             advantage = reward_list[j] - criticism_list[j]
-            actor_loss += -math.log(act_probs_list[j]) * advantage
+            # actor_loss += -np.log(act_probs_list[j]) * advantage
+            actor_loss += -tf.math.log(act_probs_list[j]) * advantage
+            # actor_loss += -tf.keras.ops.log(act_probs_list[j]) * advantage
+            # actor_loss = actor_loss_func(
+            #     act_probs_list[j], reward_list[j], criticism_list[j]
+            # )
             critic_loss += loss_f(reward_list[j], criticism_list[j])
 
-        # actor_loss = float(actor_loss)
+        # q = np.array(act_probs_list)
+        # q = tf.convert_to_tensor(q)
+        # w = np.array(reward_list) - np.array(criticism_list)
+        # w = tf.convert_to_tensor(w, dtype=tf.float32)
+        # q = tf.reduce_mean(tf.math.log(q) - w)
+        # actor_loss = q
 
         date_time_print("critic_loss =", critic_loss)
         date_time_print("actor_loss =", actor_loss)
 
         # gradient update
-        # total_loss = critic_loss + actor_loss
-        total_loss = [critic_loss, actor_loss]
+        total_loss = critic_loss + actor_loss
+        # total_loss = [critic_loss, actor_loss]
         gradients = tape.gradient(total_loss, model.trainable_variables)
         optimizer.apply_gradients(zip(gradients, model.trainable_variables))
         gradient_updates += 1
@@ -188,13 +160,6 @@ while True:
         # gradient_at_step(27, gradients, model.trainable_variables)
 
         input("¿ continue ?")
-
-        # with debug_logger.as_default():
-        #     tf.summary.trace_export(f"DEBUG.{i}", step=i)
-        # tf.summary.scalar("loss", total_loss, step=i)
-        # for var, grad in zip(model.trainable_variables, gradients):
-        #     tf.summary.histogram(f"{var.name}/gradients", grad, step=i)
-        #     tf.summary.histogram(f"{var.name}/values", var, step=i)
 
         if games_at_level > 0:
             print("*" * 30)
