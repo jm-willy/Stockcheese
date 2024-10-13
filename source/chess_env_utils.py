@@ -37,7 +37,7 @@ def apply_outcome_discount(step_reward_list, compound_rate=0.995):
     return result_list[::-1]
 
 
-def reward_successful_exploration(action_probs, times=0.25):
+def reward_successful_exploration(action_probs, times=1.25):
     """
     Use on softmax output after a win.
 
@@ -45,7 +45,7 @@ def reward_successful_exploration(action_probs, times=0.25):
     """
     result_list = []
     for i in action_probs:
-        result_list.append(i ** (1 + times))
+        result_list.append(i**times)
     return result_list
 
 
@@ -77,7 +77,7 @@ def dynamic_illegal_move_punishment(sc_wins, total_games):
         x = sc_wins / total_games
     except ZeroDivisionError:
         x = 0.1
-    return -x * 10
+    return -x * 12
 
 
 def is_pawn_promotion(uci_move):
