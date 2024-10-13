@@ -144,8 +144,6 @@ while True:
             actor_loss += -math.log(act_probs_list[j]) * advantage
             critic_loss += loss_f(reward_list[j], criticism_list[j])
 
-        # actor_loss = float(actor_loss)
-
         date_time_print("critic_loss =", critic_loss)
         date_time_print("actor_loss =", actor_loss)
 
