@@ -1,15 +1,14 @@
-from re import S
 import chess
 import chess.engine
-
 from chess_env_utils import (
-    is_pawn_promotion,
     dynamic_draw_punishment,
     dynamic_illegal_move_punishment,
+    is_pawn_promotion,
 )
-from stockcheese import Stockcheese
-from stockcheese import color_move_legality_check
+from time_utils import date_time_print
 from vars import piece_value_dict
+
+from stockcheese import Stockcheese, color_move_legality_check
 
 
 class ChessEnvironment(Stockcheese):
@@ -23,15 +22,19 @@ class ChessEnvironment(Stockcheese):
         super().__init__(train=True)
         self.white_mobility = 1.0
         self.black_mobility = 1.0
+        self.L1 = []
 
         self.white_value = 1.0
         self.black_value = 1.0
+        self.L2 = []
 
         self.white_attack = 1.0
         self.black_attack = 1.0
+        self.L3 = []
 
         self.white_defense = 1.0
         self.black_defense = 1.0
+        self.L4 = []
 
         self.reward = None
         self.sc_illegal_move = False
@@ -64,6 +67,8 @@ class ChessEnvironment(Stockcheese):
             except KeyError:
                 pass
 
+        self.L1.append((white_points, black_points))
+
         self.white_value = white_points / (black_points + self.no_0_division)
         self.black_value = black_points / (white_points + self.no_0_division)
         return
@@ -80,6 +85,8 @@ class ChessEnvironment(Stockcheese):
             self.board.push(chess.Move.null())
             white_count = self.board.legal_moves.count()
             self.board.pop()
+
+        self.L2.append((white_count, black_count))
 
         self.white_mobility = white_count / (black_count + self.no_0_division)
         self.black_mobility = black_count / (white_count + self.no_0_division)
@@ -119,6 +126,9 @@ class ChessEnvironment(Stockcheese):
                     b_defense += 1
                 elif i in w_squares:
                     b_attack += 1
+
+        self.L3.append((w_attack, b_attack))
+        self.L4.append((w_defense, b_defense))
 
         self.white_attack = w_attack / (b_attack + self.no_0_division)
         self.black_attack = b_attack / (w_attack + self.no_0_division)
@@ -165,7 +175,7 @@ class ChessEnvironment(Stockcheese):
         if self.game_over is True:
             return self.game_reward(sc_wins, total_games)
 
-        if self.sc_illegal_move is False:
+        if self.sc_illegal_move is True:
             self.reward = dynamic_illegal_move_punishment(sc_wins, total_games)
             return self.reward
 
@@ -198,6 +208,8 @@ class ChessEnvironment(Stockcheese):
         # + victory reward
         if is_pawn_promotion(uci_move):
             self.reward += 10
+
+        date_time_print('->P"·-_->', self.reward)
         return self.reward
 
     def rival_move(self):

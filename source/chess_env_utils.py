@@ -65,19 +65,19 @@ def reward_fast_wins(rewards_list):
 def dynamic_draw_punishment(sc_wins, total_games):
     """the better sc gets the more punishing is a draw"""
     try:
-        x = -(sc_wins / total_games)
+        x = sc_wins / total_games
     except ZeroDivisionError:
-        x = -0.1
-    return x * 5
+        x = 0.1
+    return -x * 5
 
 
 def dynamic_illegal_move_punishment(sc_wins, total_games):
     """the better sc gets the more punishing is an illegal move"""
     try:
-        x = -(sc_wins / total_games)
+        x = sc_wins / total_games
     except ZeroDivisionError:
-        x = -0.1
-    return x * 10
+        x = 0.1
+    return -x * 10
 
 
 def is_pawn_promotion(uci_move):
@@ -86,8 +86,3 @@ def is_pawn_promotion(uci_move):
     if uci_move[-1] == "Q":
         return True
     return False
-
-
-def normalize_iter(iter):
-    x = (iter - np.min(iter)) / (np.max(iter) - np.min(iter))
-    return x.tolist()

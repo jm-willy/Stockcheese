@@ -53,7 +53,7 @@ while True:
             date_time_print("_" * 40)
             date_time_print(i + 1, "of", steps_to_gradient_update)
             date_time_print("Stockcheese white =", env_chess.white)
-            # print(env_chess.board)
+            print(env_chess.board)
             criticism = None
             uci_move = None
             move_probability = None
@@ -80,6 +80,9 @@ while True:
             total_moves += 1
 
             reward = env_chess.step_reward(uci_move, wins_at_level, games_at_level)
+            date_time_print("@" * 60)
+            date_time_print(reward)
+            date_time_print("@" * 60)
             reward_list.append(reward)
             if reward < 0 and env_chess.game_over is True:
                 games_at_level += 1
@@ -105,23 +108,26 @@ while True:
             if uniform(0, 1) <= (wins_at_level / games_at_level):
                 loss_f = mae_loss
 
-        # check here the stupid point internals
-
         print("|" * 110)
-        white = [
-            env_chess.white_mobility,
-            env_chess.white_value,
-            env_chess.white_attack,
-            env_chess.white_defense,
-        ]
-        date_time_print("white points", white)
-        black = [
-            env_chess.black_mobility,
-            env_chess.black_value,
-            env_chess.black_attack,
-            env_chess.black_defense,
-        ]
-        date_time_print("black points", black)
+        date_time_print(env_chess.L1)
+        date_time_print(env_chess.L2)
+        date_time_print(env_chess.L3)
+        date_time_print(env_chess.L4)
+
+        # white = [
+        #     env_chess.white_mobility,
+        #     env_chess.white_value,
+        #     env_chess.white_attack,
+        #     env_chess.white_defense,
+        # ]
+        # date_time_print("white points", white)
+        # black = [
+        #     env_chess.black_mobility,
+        #     env_chess.black_value,
+        #     env_chess.black_attack,
+        #     env_chess.black_defense,
+        # ]
+        # date_time_print("black points", black)
         print("|" * 110)
 
         # discount then normalize rewards
