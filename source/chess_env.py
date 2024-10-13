@@ -208,8 +208,6 @@ class ChessEnvironment(Stockcheese):
         # + victory reward
         if is_pawn_promotion(uci_move):
             self.reward += 10
-
-        date_time_print('->P"·-_->', self.reward)
         return self.reward
 
     def rival_move(self):

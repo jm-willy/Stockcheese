@@ -14,7 +14,7 @@ input_size = sc_options["shared_model_ouput_units"]
 # input_size += critic_feedback_size
 
 
-actor_input = tf.keras.Input((input_size,))
+actor_input = tf.keras.Input(shape=(input_size,))
 x = actor_input
 # x = SixDense(256)(x)
 # x = DensePReLU(moves_count)(x)

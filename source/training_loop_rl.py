@@ -1,14 +1,16 @@
 import math
 from random import uniform
 
+import numpy as np
 import tensorflow as tf
 from chess_env import ChessEnvironment
 from chess_env_utils import (
-    apply_outcome_discount,
     reward_fast_wins,
     reward_successful_exploration,
+    time_discount,
     translate_output_training,
 )
+from custom.loss import actor_loss_func
 from custom.normalization import normalize_to_bounds
 from debug_utils import gradient_at_step, locate_NaNs
 from full_model import model
@@ -53,7 +55,7 @@ while True:
             date_time_print("_" * 40)
             date_time_print(i + 1, "of", steps_to_gradient_update)
             date_time_print("Stockcheese white =", env_chess.white)
-            print(env_chess.board)
+            # print(env_chess.board)
             criticism = None
             uci_move = None
             move_probability = None
@@ -80,9 +82,6 @@ while True:
             total_moves += 1
 
             reward = env_chess.step_reward(uci_move, wins_at_level, games_at_level)
-            date_time_print("@" * 60)
-            date_time_print(reward)
-            date_time_print("@" * 60)
             reward_list.append(reward)
             if reward < 0 and env_chess.game_over is True:
                 games_at_level += 1
@@ -108,36 +107,14 @@ while True:
             if uniform(0, 1) <= (wins_at_level / games_at_level):
                 loss_f = mae_loss
 
-        print("|" * 110)
-        date_time_print(env_chess.L1)
-        date_time_print(env_chess.L2)
-        date_time_print(env_chess.L3)
-        date_time_print(env_chess.L4)
-
-        # white = [
-        #     env_chess.white_mobility,
-        #     env_chess.white_value,
-        #     env_chess.white_attack,
-        #     env_chess.white_defense,
-        # ]
-        # date_time_print("white points", white)
-        # black = [
-        #     env_chess.black_mobility,
-        #     env_chess.black_value,
-        #     env_chess.black_attack,
-        #     env_chess.black_defense,
-        # ]
-        # date_time_print("black points", black)
-        print("|" * 110)
-
         # discount then normalize rewards
-        print("+" * 110)
-        date_time_print("reward list =", reward_list)
+        # print("+" * 110),
+        # date_time_print("reward list =", reward_list)
         reward_list = normalize_to_bounds(reward_list)
-        date_time_print("normalized =", reward_list)
-        reward_list = apply_outcome_discount(reward_list)
-        date_time_print("discounted and normalized =", reward_list)
-        print("+" * 110)
+        # date_time_print("normalized =", reward_list)
+        reward_list = time_discount(reward_list)
+        date_time_print("discounted =", reward_list)
+        # print("+" * 110)
         if reward > 0 and env_chess.game_over is True:
             act_probs_list = reward_successful_exploration(act_probs_list)
             reward_list = reward_fast_wins(reward_list)
@@ -147,15 +124,27 @@ while True:
         actor_loss = 0
         for j in range(len(reward_list)):
             advantage = reward_list[j] - criticism_list[j]
-            actor_loss += -math.log(act_probs_list[j]) * advantage
+            # actor_loss += -np.log(act_probs_list[j]) * advantage
+            actor_loss += -tf.math.log(act_probs_list[j]) * advantage
+            # actor_loss += -tf.keras.ops.log(act_probs_list[j]) * advantage
+            # actor_loss = actor_loss_func(
+            #     act_probs_list[j], reward_list[j], criticism_list[j]
+            # )
             critic_loss += loss_f(reward_list[j], criticism_list[j])
+
+        # q = np.array(act_probs_list)
+        # q = tf.convert_to_tensor(q)
+        # w = np.array(reward_list) - np.array(criticism_list)
+        # w = tf.convert_to_tensor(w, dtype=tf.float32)
+        # q = tf.reduce_mean(tf.math.log(q) - w)
+        # actor_loss = q
 
         date_time_print("critic_loss =", critic_loss)
         date_time_print("actor_loss =", actor_loss)
 
         # gradient update
-        # total_loss = critic_loss + actor_loss
-        total_loss = [critic_loss, actor_loss]
+        total_loss = critic_loss + actor_loss
+        # total_loss = [critic_loss, actor_loss]
         gradients = tape.gradient(total_loss, model.trainable_variables)
         optimizer.apply_gradients(zip(gradients, model.trainable_variables))
         gradient_updates += 1

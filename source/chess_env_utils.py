@@ -27,7 +27,7 @@ def translate_output_training(actor_output):
     return uci_output, actor_output[index_]
 
 
-def apply_outcome_discount(step_reward_list, compound_rate=0.995):
+def time_discount(step_reward_list, compound_rate=0.995):
     """use before normalization"""
     result_list = []
     counter = 1
