@@ -22,5 +22,7 @@ Stockcheese is pure artifical neural network following the actor-critic paradigm
 2. pip install -r requirements.txt
 
 ## Use trained model
-(Not yet) See save_path = "source/Stockcheese_weights.hd5" for trained weights
+(Not yet) See save_path = ` "source/Stockcheese_weights.hd5"` for trained weights
+
+
 
