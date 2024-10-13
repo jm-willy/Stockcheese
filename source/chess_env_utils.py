@@ -1,7 +1,5 @@
 import numpy as np
-
-from vars import moves_dict
-from vars import vars_dict, sc_options
+from vars import moves_dict, sc_options, vars_dict
 
 moves_count = vars_dict["action space size"]
 

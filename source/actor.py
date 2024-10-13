@@ -1,10 +1,7 @@
 import tensorflow as tf
-
-from vars import vars_dict, sc_options
-from custom.dense import SixDense
-from custom.dense import DensePReLU
 from custom.activations import madmax
-
+from custom.dense import DensePReLU, SixDense
+from vars import sc_options, vars_dict
 
 alpha_init = vars_dict["slope init"]
 reg = vars_dict["reg"]

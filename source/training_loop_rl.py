@@ -2,23 +2,18 @@ import math
 from random import uniform
 
 import tensorflow as tf
-
-# tf.debugging.experimental.enable_dump_debug_info(
-#     "./log/", tensor_debug_mode="FULL_HEALTH", circular_buffer_size=-1
-# )
-
 from chess_env import ChessEnvironment
-from chess_env_utils import apply_outcome_discount
-from chess_env_utils import reward_fast_wins
-from chess_env_utils import reward_successful_exploration
+from chess_env_utils import (
+    apply_outcome_discount,
+    reward_fast_wins,
+    reward_successful_exploration,
+    translate_output_training,
+)
 from custom.normalization import normalize_to_bounds
-from chess_env_utils import translate_output_training
+from debug_utils import gradient_at_step, locate_NaNs
 from full_model import model
 from time_utils import date_time_print
 from vars import save_path
-
-from debug_utils import gradient_at_step, locate_NaNs
-
 
 env_chess = ChessEnvironment()
 mse_loss = tf.keras.losses.MeanSquaredError()
@@ -33,27 +28,11 @@ criticism_list, act_probs_list, reward_list = [], [], []
 total_moves, gradient_updates = 0, 0
 new_game = True
 
-# tf debug
-# debug_logger = tf.summary.create_file_writer("./log/")
-# tf.summary.trace_on(graph=True)
-# with debug_logger.as_default():
-# tf.summary.trace_on(graph=True)
-#     # tf.summary.trace_export("*** DEBUG ***", step=0)
-# # with debug_logger.as_default():
-# #     tf.summary.trace_export(f"*** DEBUG {i}***")
 
-
-# with tf.summary_writer.as_default():
-#     tf.summary.scalar("loss", loss, step=step)
-#     for var, grad in zip(model.trainable_variables, gradients):
-#         tf.summary.histogram(f"{var.name}/gradients", grad, step=step)
-#         tf.summary.histogram(f"{var.name}/values", var, step=step)
-
-
-# print()
-# date_time_print("*" * 50)
-# date_time_print("Starting training")
-# print("tf.executing_eagerly =", tf.executing_eagerly())
+print()
+date_time_print("*" * 50)
+date_time_print("Starting training")
+print("tf.executing_eagerly =", tf.executing_eagerly())
 while True:
     print()
     date_time_print(
@@ -188,13 +167,6 @@ while True:
         # gradient_at_step(27, gradients, model.trainable_variables)
 
         input("¿ continue ?")
-
-        # with debug_logger.as_default():
-        #     tf.summary.trace_export(f"DEBUG.{i}", step=i)
-        # tf.summary.scalar("loss", total_loss, step=i)
-        # for var, grad in zip(model.trainable_variables, gradients):
-        #     tf.summary.histogram(f"{var.name}/gradients", grad, step=i)
-        #     tf.summary.histogram(f"{var.name}/values", var, step=i)
 
         if games_at_level > 0:
             print("*" * 30)
