@@ -5,7 +5,7 @@ def normalize_to_0_1(iter, norm_same=False):
     """
     Normalizes to between 0 and 1, 0.5 center
 
-    norm_same: whether to normalize to 0 an iter of
+    norm_same: whether to normalize to 0.5 an iter of
     repeating identical elements
     """
     if (np.max(iter) - np.min(iter)) == 0:

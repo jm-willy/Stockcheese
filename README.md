@@ -22,7 +22,9 @@ Stockcheese is pure artifical neural network following the actor-critic paradigm
 2. pip install -r requirements.txt
 
 ## Use trained model
-(Not yet) See save_path = ` "source/Stockcheese_weights.hd5"` for trained weights
+(Not yet) See save_path = ` "source/Stockcheese_weights.hd5"` for trained weights.
 
+## Why pick tensorflow over pytorch
+Tensorflow/Keras is very easy to customize and extend, there are examples covering almost every case and the documentation is clearer and wider.
 
 
