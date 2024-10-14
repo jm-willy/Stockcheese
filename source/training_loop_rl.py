@@ -10,7 +10,8 @@ from chess_env_utils import (
     time_discount,
     translate_output_training,
 )
-from custom.loss import actor_loss_func
+
+# from custom.loss import actor_loss_func
 from custom.normalization import normalize_to_bounds
 from debug_utils import gradient_at_step, locate_NaNs
 from full_model import model
@@ -143,21 +144,15 @@ while True:
         date_time_print("actor_loss =", actor_loss)
 
         # gradient update
-        total_loss = critic_loss + actor_loss
+        total_loss = critic_loss
+        # total_loss = critic_loss + actor_loss
         # total_loss = [critic_loss, actor_loss]
         gradients = tape.gradient(total_loss, model.trainable_variables)
         optimizer.apply_gradients(zip(gradients, model.trainable_variables))
         gradient_updates += 1
 
         locate_NaNs(gradients, model.trainable_variables)
-        # gradient_at_step(34, gradients, model.trainable_variables)
-        # gradient_at_step(33, gradients, model.trainable_variables)
-        # gradient_at_step(32, gradients, model.trainable_variables)
-        # gradient_at_step(31, gradients, model.trainable_variables)
-        # gradient_at_step(30, gradients, model.trainable_variables)
-        # gradient_at_step(29, gradients, model.trainable_variables)
-        # gradient_at_step(28, gradients, model.trainable_variables)
-        # gradient_at_step(27, gradients, model.trainable_variables)
+        gradient_at_step(15, gradients, model.trainable_variables)
 
         input("¿ continue ?")
 
@@ -191,4 +186,5 @@ while True:
 
 
 date_time_print("Saved weights at ", save_path)
+model.save_weights(save_path)
 model.save_weights(save_path)
