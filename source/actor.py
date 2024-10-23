@@ -3,15 +3,15 @@ from custom.activations import madmax
 from custom.dense import DensePReLU, SixDense
 from vars import sc_options, vars_dict
 
-alpha_init = vars_dict["slope init"]
-reg = vars_dict["reg"]
+# alpha_init = vars_dict["slope init"]
+# reg = vars_dict["reg"]
 moves_count = vars_dict["action space size"]
 input_size = sc_options["shared_model_ouput_units"]
 # heads = sc_options["heads"]
 # k_ratio = sc_options["keys_per_head"]
 
-# critic_feedback_size = 2
-# input_size += critic_feedback_size
+critic_feedback_size = 1
+input_size += critic_feedback_size
 
 
 actor_input = tf.keras.Input(shape=(input_size,))

@@ -11,10 +11,10 @@ input_size = sc_options["remember"]
 full_input = tf.keras.layers.Input(shape=(input_size, 8, 8, 1))
 x = shared_model(full_input)
 critic_feedback = critic_model(x)
-# x = tf.keras.layers.Concatenate(axis=-1)([critic_feedback, x, critic_feedback])
+x = tf.keras.layers.Concatenate(axis=-1)([critic_feedback, x])
 action = actor_model(x)
 model = tf.keras.Model(
-    inputs=full_input, outputs=[critic_feedback, action], name="FULL_MODEL"
+    inputs=full_input, outputs=(critic_feedback, action), name="FULL_MODEL"
 )
 
 # print()

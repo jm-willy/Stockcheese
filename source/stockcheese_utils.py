@@ -1,5 +1,4 @@
 import numpy as np
-
 from vars import moves_dict
 
 default_board_str = """
@@ -21,8 +20,8 @@ def translate_output(actor_output):
 
     Moves are 1 indexed but numpy uses 0 indexing.
     """
-    index_ = np.argmax(actor_output, axis=-1) + 1
-    uci_output = moves_dict[index_]
+    index_ = np.argmax(actor_output, axis=-1)
+    uci_output = moves_dict[index_ + 1]
     return uci_output
 
 

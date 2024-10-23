@@ -1,5 +1,6 @@
 import chess
 import chess.engine
+import numpy as np
 from chess_env_utils import (
     dynamic_draw_punishment,
     dynamic_illegal_move_punishment,
@@ -154,6 +155,18 @@ class ChessEnvironment(Stockcheese):
             self.reward = dynamic_draw_punishment(sc_wins, total_games)
         return self.reward
 
+    def random_legal_move(self):
+        """
+        Legal random uci move
+        """
+        try:
+            self.board.push_uci(
+                np.random.choice([i.uci() for i in list(self.board.legal_moves)])
+            )
+        except IndexError:
+            self.game_over_check()
+        return
+
     def game_over_check(self):
         # if self.board.legal_moves.count() < 10:
         #     self.game_over = True
@@ -207,7 +220,10 @@ class ChessEnvironment(Stockcheese):
 
         # + victory reward
         if is_pawn_promotion(uci_move):
-            self.reward += 10
+            self.reward = 10
+
+        # normalize
+        self.reward /= 10
         return self.reward
 
     def rival_move(self):

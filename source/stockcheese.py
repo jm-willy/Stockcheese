@@ -1,17 +1,14 @@
-from random import choice
 from random import uniform
 
-import numpy as np
-
 import chess
-
-from vars import sc_options
+import numpy as np
 from full_model import model
 from stockcheese_utils import (
     color_move_legality_check,
-    translate_input,
     default_board_str,
+    translate_input,
 )
+from vars import sc_options
 
 
 class Stockcheese:
@@ -57,13 +54,6 @@ class Stockcheese:
             del self.game_boards_sequence[0]
         self.array_input = np.array(self.game_boards_sequence)
         self.array_input = np.reshape(self.array_input, [1, self.remember, 8, 8, 1])
-        return
-
-    def random_legal_move(self):
-        """
-        Legal random uci move
-        """
-        self.board.push_uci(choice([i.uci() for i in list(self.board.legal_moves)]))
         return
 
     def sc_play(self):

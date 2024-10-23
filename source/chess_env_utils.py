@@ -21,14 +21,13 @@ def translate_output_training(actor_output):
 
     Numpy is 0 indexed, moves dict is not.
     """
-    actor_output = actor_output[-1].numpy()
-    index_ = np.random.choice(moves_count, p=actor_output) + 1
-    uci_output = moves_dict[index_]
-    return uci_output, actor_output[index_]
+    index_ = np.random.choice(moves_count, p=actor_output[-1].numpy())
+    uci_output = moves_dict[index_ + 1]
+    return uci_output, actor_output
 
 
 def time_discount(step_reward_list, compound_rate=0.995):
-    """use before normalization"""
+    """use after reward normalization"""
     result_list = []
     counter = 1
     for i in step_reward_list[::-1]:

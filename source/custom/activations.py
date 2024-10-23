@@ -17,6 +17,14 @@ def my_hard_tanh(x):
 
 
 @tf.function
+def my_hard_tanh_10(x):
+    x = (20 / 6) * (x + 10)
+    x = tf.keras.ops.relu6(x) * (20 / 6)
+    x = x - 10
+    return x
+
+
+@tf.function
 def leaky_hard_sigmoid(x, slope=0.05):
     x = my_hard_sigmoid(x)
     x = x + (x * slope)
