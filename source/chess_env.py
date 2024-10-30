@@ -159,11 +159,15 @@ class ChessEnvironment(Stockcheese):
         """
         Legal random uci move
         """
+        uci_moves = [i.uci() for i in list(self.board.legal_moves)]
+        if len(uci_moves) < 1:
+            self.game_over_check()
+            if self.game_over is True:
+                return
+
         try:
-            self.board.push_uci(
-                np.random.choice([i.uci() for i in list(self.board.legal_moves)])
-            )
-        except IndexError:
+            self.board.push_uci(np.random.choice(uci_moves))
+        except (IndexError, ValueError):
             self.game_over_check()
         return
 
@@ -221,9 +225,6 @@ class ChessEnvironment(Stockcheese):
         # + victory reward
         if is_pawn_promotion(uci_move):
             self.reward = 10
-
-        # normalize
-        self.reward /= 10
         return self.reward
 
     def rival_move(self):

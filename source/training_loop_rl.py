@@ -22,8 +22,7 @@ mse_loss = tf.keras.losses.MSE
 mae_loss = tf.keras.losses.MAE
 optimizer = tf.keras.optimizers.Nadam(learning_rate=0.05)
 
-# every step will have its own gradient
-steps_to_gradient_update = 32
+steps_to_gradient_update = 32  # every step has its own gradient
 wins_at_level, games_at_level, level = 0, 0, 0
 criticism, actor_move, reward = None, None, None
 criticism_list, act_probs_list, reward_list = [], [], []
@@ -55,7 +54,7 @@ while True:
             # date_time_print("_" * 40)
             # date_time_print(i + 1, "of", steps_to_gradient_update)
             # date_time_print("Stockcheese white =", env_chess.white)
-            # print(env_chess.board)
+            # print(env_chess.white)
             criticism = None
             uci_move = None
             move_probability = None
@@ -64,7 +63,6 @@ while True:
                 env_chess.process_input()
                 criticism, actor_move = model(env_chess.array_input)
                 uci_move, move_probability = translate_output_training(actor_move)
-
                 env_chess.sc_action(uci_move)
                 env_chess.rival_move()
 
@@ -105,9 +103,12 @@ while True:
         # discount then normalize rewards
         (print("+|" * 50),)
         date_time_print("reward list =", reward_list)
-        reward_list = normalize_to_bounds(reward_list)
-        date_time_print("normalized =", reward_list)
+        # reward_list = normalize_to_bounds(reward_list)
+        # reward_list = np.array(reward_list) / 10
+
+        # date_time_print("normalized =", reward_list)
         reward_list = time_discount(reward_list)
+
         print("+|" * 50)
         if reward > 0 and env_chess.game_over is True:
             act_probs_list = reward_successful_exploration(act_probs_list)
@@ -124,13 +125,13 @@ while True:
         )
 
         # Switch to mae loss with probability equal to win rate
-        loss_f = mse_loss
+        critic_loss_f = mse_loss
         if games_at_level > 0:
             if uniform(0, 1) <= (wins_at_level / games_at_level):
-                loss_f = mae_loss
+                critic_loss_f = mae_loss
 
         # compute losses
-        critic_loss = loss_f(reward_list, criticism_list)
+        critic_loss = critic_loss_f(reward_list, criticism_list)
         advantage = reward_list - criticism_list
         advantage = tf.keras.ops.mean(advantage, axis=-1, keepdims=True)
         actor_loss = -tf.keras.ops.log(act_probs_list) * advantage
@@ -145,10 +146,8 @@ while True:
         optimizer.apply_gradients(zip(gradients, model.trainable_variables))
         gradient_updates += 1
 
-        locate_NaNs(gradients, model.trainable_variables)
+        # locate_NaNs(gradients, model.trainable_variables)
         # gradient_at_step(15, gradients, model.trainable_variables)
-
-        # input("¿ continue ?")
 
         if games_at_level > 0:
             print("*" * 30)
